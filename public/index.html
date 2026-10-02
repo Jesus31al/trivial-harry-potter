@@ -22,24 +22,26 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
+            overflow-x: hidden;
         }
 
         .container {
             background: rgba(18, 18, 18, 0.92);
             border: 2px solid #d4af37;
             border-radius: 12px;
-            padding: 25px;
+            padding: 15px;
             width: 100%;
             max-width: 600px;
             box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
             text-align: center;
+            box-sizing: border-box;
         }
 
         h1 {
             font-family: 'MedievalSharp', cursive;
             color: #d4af37;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px #000;
         }
@@ -57,7 +59,8 @@
             border: 1px solid #d4af37;
             background: #2a2a2a;
             color: #fff;
-            width: 80%;
+            width: 90%;
+            max-width: 300px;
             margin-bottom: 15px;
             text-align: center;
         }
@@ -94,39 +97,32 @@
             display: none !important;
         }
 
-      /* Tablero adaptable para móviles y ordenadores */
+        /* Tablero adaptable para móviles y ordenadores */
         .board-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            margin: 15px 0;
-            max-height: 70vh; /* Se adapta al alto de la pantalla del móvil en lugar de una altura fija */
+            gap: 4px;
+            margin: 10px 0;
+            max-height: 60vh;
             overflow-y: auto;
-            padding: 5px;
+            padding: 2px;
             width: 100%;
             box-sizing: border-box;
         }
 
-        /* Si la pantalla es muy estrecha (móviles en vertical), reducimos un poco el espacio o ajustamos si hace falta */
-        @media (max-width: 480px) {
-            .board-grid {
-                gap: 4px;
-                padding: 2px;
-            }
-        }
-
         .cell {
             border: 2px solid #d4af37;
-            border-radius: 8px;
-            padding: 6px 2px;
-            min-height: 65px;
+            border-radius: 6px;
+            padding: 4px 1px;
+            min-height: 55px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.6rem;
+            font-size: 0.5rem;
             position: relative;
             background: rgba(0,0,0,0.6);
+            word-break: break-word;
         }
 
         /* Colores según el tipo de casilla */
@@ -140,7 +136,7 @@
         .cell-tokens {
             display: flex;
             flex-wrap: wrap;
-            gap: 2px;
+            gap: 1px;
             justify-content: center;
             margin-top: 2px;
         }
@@ -149,9 +145,9 @@
             background: #d4af37;
             color: #000;
             font-weight: bold;
-            padding: 1px 4px;
+            padding: 1px 3px;
             border-radius: 3px;
-            font-size: 0.55rem;
+            font-size: 0.45rem;
         }
 
         /* Temporizador */
@@ -174,21 +170,28 @@
 
         .options-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: 1fr;
+            gap: 8px;
             margin-top: 15px;
+        }
+
+        @media (min-width: 480px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .option-btn {
             background: #1a2634;
             color: #f3e5ab;
             border: 1px solid #d4af37;
-            padding: 12px;
+            padding: 10px;
             border-radius: 8px;
             cursor: pointer;
             font-family: 'Cinzel', serif;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: background 0.2s;
+            width: 100%;
         }
 
         .option-btn:hover {
@@ -203,21 +206,22 @@
             text-align: left;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 6px;
-            padding: 10px;
+            padding: 8px;
         }
 
         .players-list li {
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-bottom: 1px solid rgba(212, 175, 55, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            gap: 5px;
         }
 
         .badges-container span {
-            font-size: 1rem;
-            margin-left: 4px;
+            font-size: 0.9rem;
+            margin-left: 2px;
             opacity: 0.3;
         }
         .badges-container span.active {
@@ -231,7 +235,7 @@
         <!-- Pantalla de Inicio / Registro -->
         <div id="login-screen">
             <h1>Trivial de Harry Potter</h1>
-            <p style="margin-bottom: 20px;">Introduce tu nombre de mago o bruja:</p>
+            <p style="margin-bottom: 15px; font-size: 0.95rem;">Introduce tu nombre de mago o bruja:</p>
             <input type="text" id="player-name" placeholder="Ej. Sirius Black" autocomplete="off">
             <br>
             <button id="join-btn">Entrar al Gran Comedor</button>
@@ -240,7 +244,7 @@
         <!-- Pantalla de Espera -->
         <div id="waiting-screen" class="hidden">
             <h1>Sala de Espera</h1>
-            <p>Esperando magos y brujas para iniciar el torneo...</p>
+            <p style="font-size: 0.9rem;">Esperando magos y brujas para iniciar el torneo...</p>
             <ul id="players-waiting" class="players-list"></ul>
             <button id="start-btn" class="hidden">Comenzar Partida</button>
         </div>
@@ -248,8 +252,8 @@
         <!-- Pantalla de Partida y Tablero -->
         <div id="game-screen" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 id="turn-info" style="color: #d4af37;">Turno de: ...</h3>
-                <span id="timer-text" style="font-weight: bold;">15s</span>
+                <h3 id="turn-info" style="color: #d4af37; font-size: 1rem;">Turno de: ...</h3>
+                <span id="timer-text" style="font-weight: bold; font-size: 0.9rem;">15s</span>
             </div>
 
             <div class="timer-container">
@@ -260,22 +264,22 @@
             <div class="board-grid" id="board-grid"></div>
 
             <!-- Panel de Control del Turno -->
-            <div id="action-panel" style="margin-top: 15px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; border: 1px solid #d4af37;">
+            <div id="action-panel" style="margin-top: 10px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; border: 1px solid #d4af37;">
                 <div id="dice-section">
-                    <p id="dice-message" style="margin-bottom: 10px;">¡Es tu turno de tirar el dado mágico!</p>
+                    <p id="dice-message" style="margin-bottom: 10px; font-size: 0.9rem;">¡Es tu turno de tirar el dado mágico!</p>
                     <button id="roll-btn">🎲 Tirar Dado</button>
                 </div>
 
                 <div id="question-section" class="hidden">
-                    <h3 id="question-category" style="color: #d4af37; margin-bottom: 5px;">Categoría</h3>
-                    <h2 id="question-text" style="font-size: 1rem; margin-bottom: 10px;">Pregunta...</h2>
+                    <h3 id="question-category" style="color: #d4af37; margin-bottom: 5px; font-size: 0.95rem;">Categoría</h3>
+                    <h2 id="question-text" style="font-size: 0.9rem; margin-bottom: 10px;">Pregunta...</h2>
                     <div class="options-grid" id="options-container"></div>
                 </div>
             </div>
 
             <!-- Marcador y Estandartes -->
-            <div style="margin-top: 15px;">
-                <h3>Magos en Juego y Estandartes:</h3>
+            <div style="margin-top: 12px;">
+                <h3 style="font-size: 0.95rem;">Magos en Juego:</h3>
                 <ul id="scores-list" class="players-list"></ul>
             </div>
         </div>
@@ -283,7 +287,7 @@
         <!-- Pantalla Final -->
         <div id="ended-screen" class="hidden">
             <h1>¡Partida Finalizada!</h1>
-            <h2 id="winner-text" style="color: #d4af37; margin: 15px 0;">¡El mago ha ganado la Copa de las Casas!</h2>
+            <h2 id="winner-text" style="color: #d4af37; margin: 15px 0; font-size: 1.1rem;">¡El mago ha ganado la Copa de las Casas!</h2>
             <button onclick="location.reload()">Jugar de nuevo</button>
         </div>
     </div>
