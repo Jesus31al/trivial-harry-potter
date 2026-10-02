@@ -4,15 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trivial de Harry Potter - Tablero Mágico</title>
-    <!-- Importamos fuentes de Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Cinzel', serif;
             background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('Fondo.jpg') no-repeat center center fixed;
@@ -25,7 +19,6 @@
             padding: 10px;
             overflow-x: hidden;
         }
-
         .container {
             background: rgba(18, 18, 18, 0.92);
             border: 2px solid #d4af37;
@@ -37,7 +30,6 @@
             text-align: center;
             box-sizing: border-box;
         }
-
         h1 {
             font-family: 'MedievalSharp', cursive;
             color: #d4af37;
@@ -45,12 +37,7 @@
             margin-bottom: 15px;
             text-shadow: 2px 2px 4px #000;
         }
-
-        h2, h3 {
-            margin-bottom: 10px;
-            color: #e0d0c0;
-        }
-
+        h2, h3 { margin-bottom: 10px; color: #e0d0c0; }
         input[type="text"] {
             padding: 12px;
             font-size: 1rem;
@@ -64,40 +51,24 @@
             margin-bottom: 15px;
             text-align: center;
         }
-
         button {
             background: #740001;
             color: #fff;
             font-family: 'Cinzel', serif;
             font-weight: bold;
-            padding: 12px 25px;
+            padding: 12px 20px;
             border: 2px solid #d4af37;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin: 5px;
         }
+        button:hover { background: #ae0001; transform: scale(1.05); box-shadow: 0 0 10px #d4af37; }
+        button:disabled { background: #444; border-color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+        .hidden { display: none !important; }
 
-        button:hover {
-            background: #ae0001;
-            transform: scale(1.05);
-            box-shadow: 0 0 10px #d4af37;
-        }
-
-        button:disabled {
-            background: #444;
-            border-color: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Tablero adaptable para móviles y ordenadores */
         .board-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -109,7 +80,6 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         .cell {
             border: 2px solid #d4af37;
             border-radius: 6px;
@@ -124,8 +94,6 @@
             background: rgba(0,0,0,0.6);
             word-break: break-word;
         }
-
-        /* Colores según el tipo de casilla */
         .cell.gryffindor { border-color: #740001; background: rgba(116, 0, 1, 0.3); }
         .cell.slytherin { border-color: #1a472a; background: rgba(26, 71, 42, 0.3); }
         .cell.ravenclaw { border-color: #0e1a40; background: rgba(14, 26, 64, 0.4); }
@@ -133,151 +101,74 @@
         .cell.normal { border-color: #555; background: rgba(40, 40, 40, 0.4); }
         .cell.special { border-color: #d4af37; background: rgba(100, 100, 100, 0.3); }
 
-        .cell-tokens {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1px;
-            justify-content: center;
-            margin-top: 2px;
-        }
+        .cell-tokens { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; margin-top: 2px; }
+        .player-token { background: #d4af37; color: #000; font-weight: bold; padding: 1px 3px; border-radius: 3px; font-size: 0.45rem; }
 
-        .player-token {
-            background: #d4af37;
-            color: #000;
-            font-weight: bold;
-            padding: 1px 3px;
-            border-radius: 3px;
-            font-size: 0.45rem;
-        }
+        .timer-container { width: 100%; background: #2a2a2a; border: 1px solid #d4af37; border-radius: 4px; height: 10px; margin: 10px 0; overflow: hidden; }
+        .timer-bar { height: 100%; background: #d4af37; width: 100%; transition: width 1s linear; }
 
-        /* Temporizador */
-        .timer-container {
-            width: 100%;
-            background: #2a2a2a;
-            border: 1px solid #d4af37;
-            border-radius: 4px;
-            height: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px; }
+        @media (min-width: 480px) { .options-grid { grid-template-columns: 1fr 1fr; } }
+        .option-btn { background: #1a2634; color: #f3e5ab; border: 1px solid #d4af37; padding: 10px; border-radius: 8px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85rem; width: 100%; }
+        .option-btn:hover { background: #2c3e50; border-color: #fff; }
 
-        .timer-bar {
-            height: 100%;
-            background: #d4af37;
-            width: 100%;
-            transition: width 1s linear;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        @media (min-width: 480px) {
-            .options-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .option-btn {
-            background: #1a2634;
-            color: #f3e5ab;
-            border: 1px solid #d4af37;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Cinzel', serif;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-            width: 100%;
-        }
-
-        .option-btn:hover {
-            background: #2c3e50;
-            border-color: #fff;
-        }
-
-        .players-list {
-            list-style: none;
-            margin: 15px 0;
-            padding: 0;
-            text-align: left;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
-            padding: 8px;
-        }
-
-        .players-list li {
-            padding: 6px 8px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            gap: 5px;
-        }
-
-        .badges-container span {
-            font-size: 0.9rem;
-            margin-left: 2px;
-            opacity: 0.3;
-        }
-        .badges-container span.active {
-            opacity: 1;
-        }
+        .players-list { list-style: none; margin: 15px 0; padding: 0; text-align: left; background: rgba(0, 0, 0, 0.4); border-radius: 6px; padding: 8px; }
+        .players-list li { padding: 6px 8px; border-bottom: 1px solid rgba(212, 175, 55, 0.2); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; gap: 5px; }
+        .badges-container span { font-size: 0.9rem; margin-left: 2px; opacity: 0.3; }
+        .badges-container span.active { opacity: 1; }
+        .error-text { color: #ff6b6b; font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Pantalla de Inicio / Registro -->
+        <!-- Pantalla de Inicio / Opciones de Sala -->
         <div id="login-screen">
             <h1>Trivial de Harry Potter</h1>
             <p style="margin-bottom: 15px; font-size: 0.95rem;">Introduce tu nombre de mago o bruja:</p>
-            <input type="text" id="player-name" placeholder="Ej. Sirius Black" autocomplete="off">
-            <br>
-            <button id="join-btn">Entrar al Gran Comedor</button>
+            <input type="text" id="player-name" placeholder="Ej. Hermione Granger" autocomplete="off"><br>
+            
+            <div style="margin-top: 10px;">
+                <button id="create-room-btn">Crear Sala Privada</button>
+                <button id="show-join-btn" style="background: #1a2634;">Unirse con PIN</button>
+            </div>
+
+            <div id="join-section" class="hidden" style="margin-top: 15px; border-top: 1px solid #d4af37; padding-top: 15px;">
+                <p style="margin-bottom: 10px; font-size: 0.9rem;">Introduce el PIN de la sala:</p>
+                <input type="text" id="room-pin-input" placeholder="Ej. 4821" autocomplete="off"><br>
+                <button id="join-room-btn">Entrar a la Sala</button>
+            </div>
+            <p id="error-msg" class="error-text"></p>
         </div>
 
-        <!-- Pantalla de Espera -->
+        <!-- Pantalla de Espera con PIN Visible -->
         <div id="waiting-screen" class="hidden">
             <h1>Sala de Espera</h1>
-            <p style="font-size: 0.9rem;">Esperando magos y brujas para iniciar el torneo...</p>
+            <p id="room-pin-display" style="color: #d4af37; font-weight: bold; font-size: 1.1rem; margin: 10px 0;"></p>
+            <p style="font-size: 0.85rem;">Comparte este PIN con tus amigos para que entren.</p>
             <ul id="players-waiting" class="players-list"></ul>
             <button id="start-btn" class="hidden">Comenzar Partida</button>
         </div>
 
-        <!-- Pantalla de Partida y Tablero -->
+        <!-- Pantalla de Partida -->
         <div id="game-screen" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 id="turn-info" style="color: #d4af37; font-size: 1rem;">Turno de: ...</h3>
                 <span id="timer-text" style="font-weight: bold; font-size: 0.9rem;">15s</span>
             </div>
-
-            <div class="timer-container">
-                <div id="timer-bar" class="timer-bar"></div>
-            </div>
-
-            <!-- Tablero Visual de 24 Casillas -->
+            <div class="timer-container"><div id="timer-bar" class="timer-bar"></div></div>
             <div class="board-grid" id="board-grid"></div>
-
-            <!-- Panel de Control del Turno -->
             <div id="action-panel" style="margin-top: 10px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; border: 1px solid #d4af37;">
                 <div id="dice-section">
                     <p id="dice-message" style="margin-bottom: 10px; font-size: 0.9rem;">¡Es tu turno de tirar el dado mágico!</p>
                     <button id="roll-btn">🎲 Tirar Dado</button>
                 </div>
-
                 <div id="question-section" class="hidden">
                     <h3 id="question-category" style="color: #d4af37; margin-bottom: 5px; font-size: 0.95rem;">Categoría</h3>
                     <h2 id="question-text" style="font-size: 0.9rem; margin-bottom: 10px;">Pregunta...</h2>
                     <div class="options-grid" id="options-container"></div>
                 </div>
             </div>
-
-            <!-- Marcador y Estandartes -->
             <div style="margin-top: 12px;">
                 <h3 style="font-size: 0.95rem;">Magos en Juego:</h3>
                 <ul id="scores-list" class="players-list"></ul>
@@ -292,11 +183,9 @@
         </div>
     </div>
 
-    <!-- Elementos de Audio -->
     <audio id="sound-correct" src="https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg" preload="auto"></audio>
     <audio id="sound-wrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
-    <!-- Socket.io cliente -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -307,21 +196,26 @@
         const endedScreen = document.getElementById('ended-screen');
 
         const playerNameInput = document.getElementById('player-name');
-        const joinBtn = document.getElementById('join-btn');
-        const startBtn = document.getElementById('start-btn');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const showJoinBtn = document.getElementById('show-join-btn');
+        const joinSection = document.getElementById('join-section');
+        const roomPinInput = document.getElementById('room-pin-input');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const errorMsg = document.getElementById('error-msg');
+
+        const roomPinDisplay = document.getElementById('room-pin-display');
         const playersWaiting = document.getElementById('players-waiting');
-        
+        const startBtn = document.getElementById('start-btn');
+
         const turnInfo = document.getElementById('turn-info');
         const boardGrid = document.getElementById('board-grid');
         const diceSection = document.getElementById('dice-section');
         const questionSection = document.getElementById('question-section');
         const rollBtn = document.getElementById('roll-btn');
         const diceMessage = document.getElementById('dice-message');
-        
         const questionCategory = document.getElementById('question-category');
         const questionText = document.getElementById('question-text');
         const optionsContainer = document.getElementById('options-container');
-        
         const scoresList = document.getElementById('scores-list');
         const winnerText = document.getElementById('winner-text');
         const timerBar = document.getElementById('timer-bar');
@@ -330,17 +224,45 @@
         const soundCorrect = document.getElementById('sound-correct');
         const soundWrong = document.getElementById('sound-wrong');
 
-        let myName = '';
         let myId = '';
 
-        joinBtn.addEventListener('click', () => {
-            myName = playerNameInput.value.trim();
-            if (myName) {
-                socket.emit('join-game', myName);
-                loginScreen.classList.add('hidden');
-                waitingScreen.classList.remove('hidden');
-                startBtn.classList.remove('hidden');
-            }
+        socket.on('connect', () => { myId = socket.id; });
+
+        showJoinBtn.addEventListener('click', () => {
+            joinSection.classList.toggle('hidden');
+        });
+
+        createRoomBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            if (!name) { errorMsg.innerText = "Por favor, introduce tu nombre."; return; }
+            errorMsg.innerText = "";
+            socket.emit('create-room', name);
+        });
+
+        joinRoomBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            const pin = roomPinInput.value.trim();
+            if (!name || !pin) { errorMsg.innerText = "Introduce tu nombre y el PIN de la sala."; return; }
+            errorMsg.innerText = "";
+            socket.emit('join-room', { pin, playerName: name });
+        });
+
+        socket.on('room-created', (pin) => {
+            loginScreen.classList.add('hidden');
+            waitingScreen.classList.remove('hidden');
+            roomPinDisplay.innerText = `PIN de tu Sala Privada: ${pin}`;
+            startBtn.classList.remove('hidden'); // El creador es el líder
+        });
+
+        socket.on('room-joined', (pin) => {
+            loginScreen.classList.add('hidden');
+            waitingScreen.classList.remove('hidden');
+            roomPinDisplay.innerText = `Conectado a la Sala PIN: ${pin}`;
+            startBtn.classList.add('hidden'); // Solo el creador inicia
+        });
+
+        socket.on('error-message', (msg) => {
+            errorMsg.innerText = msg;
         });
 
         startBtn.addEventListener('click', () => {
@@ -352,26 +274,26 @@
             rollBtn.disabled = true;
         });
 
-        socket.on('connect', () => {
-            myId = socket.id;
-        });
-
         socket.on('update-game', (data) => {
-            const { gameState, players, currentPlayerIndex, boardCells } = data;
+            const { gameState, players, currentPlayerIndex, boardCells, pin } = data;
 
-            // Sala de espera
+            roomPinDisplay.innerText = `PIN de la Sala: ${pin}`;
+
             playersWaiting.innerHTML = '';
             players.forEach((p, index) => {
                 const li = document.createElement('li');
-                li.innerHTML = `<span>🧙‍♂️ ${p.name} ${index === 0 ? '(Líder)' : ''}</span>`;
+                li.innerHTML = `<span>🧙‍♂️ ${p.name} ${index === 0 ? '(Dueño)' : ''}</span>`;
                 playersWaiting.appendChild(li);
             });
 
             if (players.length > 0 && gameState === 'waiting') {
-                startBtn.classList.remove('hidden');
+                if (players[0].id === myId) {
+                    startBtn.classList.remove('hidden');
+                } else {
+                    startBtn.classList.add('hidden');
+                }
             }
 
-            // Partida en curso
             if (gameState === 'playing') {
                 waitingScreen.classList.add('hidden');
                 gameScreen.classList.remove('hidden');
@@ -382,11 +304,9 @@
 
                 turnInfo.innerText = isMyTurn ? "¡Es tu turno!" : `Turno de: ${currentTurnPlayer.name}`;
 
-                // Renderizar el tablero
                 renderBoard(boardCells, players);
                 renderScores(players);
 
-                // Controlar paneles de acción
                 if (isMyTurn) {
                     if (currentTurnPlayer.currentQuestion) {
                         diceSection.classList.add('hidden');
@@ -416,13 +336,8 @@
             timerBar.style.width = (timeLeft / 15) * 100 + '%';
         });
 
-        socket.on('correct-answer-feedback', () => {
-            soundCorrect.play().catch(e => console.log(e));
-        });
-
-        socket.on('wrong-answer-feedback', () => {
-            soundWrong.play().catch(e => console.log(e));
-        });
+        socket.on('correct-answer-feedback', () => { soundCorrect.play().catch(e => {}); });
+        socket.on('wrong-answer-feedback', () => { soundWrong.play().catch(e => {}); });
 
         socket.on('game-ended', (winner) => {
             gameScreen.classList.add('hidden');

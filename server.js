@@ -8,182 +8,245 @@ const io = new Server(server);
 
 app.use(express.static('public'));
 
-let players = [];
-let currentPlayerIndex = 0;
-let gameState = 'waiting'; // 'waiting', 'playing', 'ended'
-let questionTimer = null;
-const QUESTION_TIME_LIMIT = 10;
+// Estructura para almacenar las salas de juego: { pin: { players, gameState, currentPlayerIndex, boardCells, ... } }
+const rooms = {};
 
-// Tablero ampliado a 24 casillas para que sea más largo y cueste más conseguir los premios
-const boardCells = [
-    { id: 0, type: 'special', name: 'Gran Comedor (Salida)' },
-    { id: 1, type: 'normal', name: 'Pasillo del 3er Piso' },
-    { id: 2, type: 'normal', name: 'Mazmorras Oscuras' },
-    { id: 3, type: 'gryffindor', name: 'Torre Gryffindor 🦁' },
-    { id: 4, type: 'normal', name: 'Patio de la Torre del Reloj' },
-    { id: 5, type: 'normal', name: 'Clase de Defensa Contra las Artes Oscuras' },
-    { id: 6, type: 'slytherin', name: 'Mazmorras Slytherin 🐍' },
-    { id: 7, type: 'normal', name: 'Invernadero Nº 3' },
-    { id: 8, type: 'normal', name: 'Cabaña de Hagrid' },
-    { id: 9, type: 'ravenclaw', name: 'Sala Ravenclaw 🦅' },
-    { id: 10, type: 'normal', name: 'Puente Colgante' },
-    { id: 11, type: 'special', name: 'Biblioteca Prohibida' },
-    { id: 12, type: 'hufflepuff', name: 'Sótano Hufflepuff 🦡' },
-    { id: 13, type: 'normal', name: 'Lago Negro' },
-    { id: 14, type: 'normal', name: 'Clase de Encantamientos' },
-    { id: 15, type: 'gryffindor', name: 'Torre de Gryffindor (Norte) 🦁' },
-    { id: 16, type: 'normal', name: 'Buhúrica' },
-    { id: 17, type: 'slytherin', name: 'Dormitorios de Slytherin 🐍' },
-    { id: 18, type: 'normal', name: 'Despacho del Director' },
-    { id: 19, type: 'ravenclaw', name: 'Torre de Astronomía 🦅' },
-    { id: 20, type: 'normal', name: 'Enfermería' },
-    { id: 21, type: 'hufflepuff', name: 'Cocinas de Hogwarts 🦡' },
-    { id: 22, type: 'special', name: 'Bosque Prohibido' },
-    { id: 23, type: 'normal', name: 'Sala de Menesteres' }
-];
-
-// Banco de preguntas categorizado
-const questionsBank = {
+// Preguntas del Trivial de Harry Potter
+const questions = {
     gryffindor: [
-        { question: "¿Cuál es el patronus de Harry Potter?", options: ["Ciervo", "Cierva", "Perro", "Fénix"], correct: 0 },
-        { question: "¿Cómo se llama la lechuza de Harry?", options: ["Errol", "Crookshanks", "Hedwig", "Scabbers"], correct: 2 }
+        { question: "¿Cómo se llama elfantasma de Gryffindor?", options: ["Nick Casi Decapitado", "El Fraile Gordo", "La Dama Gris", "El Barón Sanguinario"], correct: 0 },
+        { question: "¿Qué objeto saca Harry del Sombrero Seleccionador en la Cámara Secreta?", options: ["La Espada de Gryffindor", "La Diadema de Ravenclaw", "Un colmillo de Basilisco", "La Copa de Hufflepuff"], correct: 0 }
     ],
     slytherin: [
-        { question: "¿Quién es el profesor de Pociones en el primer año?", options: ["Lupin", "Severus Snape", "Slughorn", "Lockhart"], correct: 1 },
-        { question: "¿Cómo se llama la serpiente de Voldemort?", options: ["Nagini", "Basilisk", "Norbert", "Fang"], correct: 0 }
+        { question: "¿Quién es el jefe de la casa Slytherin durante los primeros años de Harry?", options: ["Severus Snape", "Horace Slughorn", "Minerva McGonagall", "Filius Flitwick"], correct: 0 },
+        { question: "¿Cuál es el animal que representa a la casa Slytherin?", options: ["Una serpiente", "Un león", "Un águila", "Un tejón"], correct: 0 }
     ],
     ravenclaw: [
-        { question: "¿Qué objeto mágico permite viajar en el tiempo?", options: ["Giratiempo", "Pensadero", "Capa", "Piedra"], correct: 0 },
-        { question: "¿Cuál es la contraseña para entrar a la torre de Ravenclaw en los libros?", options: ["Una adivinanza", "¡Alohomora!", "Lumos", "Fortuna Major"], correct: 0 }
+        { question: "¿Qué objeto custodia la entrada a la sala común de Ravenclaw?", options: ["Una aldaba con una adivinanza", "Un cuadro con contraseña", "Una gárgola de piedra", "Un laberinto invisible"], correct: 0 },
+        { question: "¿Cuál es el elemento asociado a la casa Ravenclaw?", options: ["Aire", "Fuego", "Agua", "Tierra"], correct: 0 }
     ],
     hufflepuff: [
-        { question: "¿Quién es el jefe de la casa Hufflepuff?", options: ["Pomona Sprout", "Minerva McGonagall", "Filius Flitwick", "Severus Snape"], correct: 0 },
-        { question: "¿Qué objeto representa a Hufflepuff?", options: ["Una copa dorada", "Una diadema", "Una espada", "Un medallón"], correct: 0 }
+        { question: "¿Quién es el fundador de la casa Hufflepuff?", options: ["Helga Hufflepuff", "Rowena Ravenclaw", "Salazar Slytherin", "Godric Gryffindor"], correct: 0 },
+        { question: "¿Dónde se encuentra la entrada a la cocina de Hogwarts?", options: ["Cerca de los barriles de Hufflepuff", "En el gran comedor", "En la torre de astronomía", "En el calabozo"], correct: 0 }
     ],
     normal: [
-        { question: "¿Cómo se llama el banco de los magos?", options: ["Gringotts", "Gringos", "Wizard Bank", "Vaults"], correct: 0 },
-        { question: "¿Qué dulce hace que te salga humo por las orejas?", options: ["Pastillas Fizzing Whizzbees", "Ratones de Hielo", "Calderos de Chocolate", "Plumas de Alajú"], correct: 0 },
-        { question: "¿En qué calle vive la familia Dursley?", options: ["Privet Drive", "Godric's Hollow", "Diagon Alley", "Spinner's End"], correct: 0 }
+        { question: "¿Cómo se llama el callejón donde los magos compran sus materiales escolares?", options: ["Callejón Diagon", "Callejón Knockturn", "Hogsmeade", "Andén 9 y 3/4"], correct: 0 },
+        { question: "¿Cuál es el hechizo para desarmar a un oponente?", options: ["Expelliarmus", "Stupefy", "Lumos", "Avada Kedavra"], correct: 0 }
     ],
     special: [
-        { question: "¿Cuál de las siguientes NO es una Reliquia de la Muerte?", options: ["Varita de Saúco", "Piedra Resurrección", "Sombrero Seleccionador", "Capa de Invisibilidad"], correct: 2 }
+        { question: "¿Cuántos hermanos Weasley hay en total?", options: ["7", "5", "6", "8"], correct: 0 },
+        { question: "¿Quién mató a Sirius Black?", options: ["Bellatrix Lestrange", "Lucius Malfoy", "Severus Snape", "Lord Voldemort"], correct: 0 }
     ]
 };
 
-function startTimer() {
-    let timeLeft = QUESTION_TIME_LIMIT;
-    io.emit('timer-update', timeLeft);
-
-    questionTimer = setInterval(() => {
-        timeLeft--;
-        io.emit('timer-update', timeLeft);
-
-        if (timeLeft <= 0) {
-            clearInterval(questionTimer);
-            nextTurn();
-        }
-    }, 1000);
-}
-
-function nextTurn() {
-    clearInterval(questionTimer);
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    io.emit('update-game', { gameState, players, currentPlayerIndex, boardCells });
+function generateBoard() {
+    const types = ['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff', 'normal', 'special'];
+    let cells = [];
+    for (let i = 0; i < 24; i++) {
+        let type = types[i % types.length];
+        cells.push({ id: i, type: type, name: type.toUpperCase() });
+    }
+    return cells;
 }
 
 io.on('connection', (socket) => {
-    console.log(`Mago conectado: ${socket.id}`);
+    let currentRoomPin = null;
 
-    socket.on('join-game', (name) => {
-        const newPlayer = {
+    // Crear una nueva sala privada
+    socket.on('create-room', (playerName) => {
+        // Generar un PIN aleatorio de 4 dígitos
+        const pin = Math.floor(1000 + Math.random() * 9000).toString();
+        currentRoomPin = pin;
+
+        rooms[pin] = {
+            pin: pin,
+            players: [{
+                id: socket.id,
+                name: playerName,
+                boardPosition: 0,
+                score: 0,
+                badges: { gryffindor: false, slytherin: false, ravenclaw: false, hufflepuff: false },
+                hasRolled: false,
+                currentQuestion: null,
+                currentCellType: null
+            }],
+            gameState: 'waiting', // waiting, playing, ended
+            currentPlayerIndex: 0,
+            boardCells: generateBoard(),
+            timer: null,
+            timeLeft: 15
+        };
+
+        socket.join(pin);
+        socket.emit('room-created', pin);
+        updateRoomState(pin);
+    });
+
+    // Unirse a una sala existente mediante PIN
+    socket.on('join-room', ({ pin, playerName }) => {
+        if (!rooms[pin]) {
+            socket.emit('error-message', '¡Esa sala no existe o el PIN es incorrecto!');
+            return;
+        }
+
+        if (rooms[pin].gameState !== 'waiting') {
+            socket.emit('error-message', 'La partida en esta sala ya ha comenzado.');
+            return;
+        }
+
+        currentRoomPin = pin;
+        socket.join(pin);
+
+        rooms[pin].players.push({
             id: socket.id,
-            name: name,
-            score: 0,
+            name: playerName,
             boardPosition: 0,
+            score: 0,
             badges: { gryffindor: false, slytherin: false, ravenclaw: false, hufflepuff: false },
             hasRolled: false,
-            currentQuestion: null
-        };
-        players.push(newPlayer);
-        io.emit('update-game', { gameState, players, currentPlayerIndex, boardCells });
+            currentQuestion: null,
+            currentCellType: null
+        });
+
+        socket.emit('room-joined', pin);
+        updateRoomState(pin);
     });
 
+    // Iniciar la partida en la sala
     socket.on('start-game', () => {
-        if (gameState === 'waiting' && players.length > 0) {
-            gameState = 'playing';
-            currentPlayerIndex = 0;
-            io.emit('update-game', { gameState, players, currentPlayerIndex, boardCells });
+        if (!currentRoomPin || !rooms[currentRoomPin]) return;
+        const room = rooms[currentRoomPin];
+        
+        // Solo el líder (primer jugador) puede iniciar
+        if (room.players[0].id === socket.id && room.players.length >= 1) {
+            room.gameState = 'playing';
+            updateRoomState(currentRoomPin);
         }
     });
 
+    // Tirar el dado
     socket.on('roll-dice', () => {
-        const player = players[currentPlayerIndex];
-        if (player && player.id === socket.id && !player.hasRolled && gameState === 'playing') {
-            const diceRoll = Math.floor(Math.random() * 6) + 1;
+        if (!currentRoomPin || !rooms[currentRoomPin]) return;
+        const room = rooms[currentRoomPin];
+        const player = room.players[room.currentPlayerIndex];
+
+        if (player && player.id === socket.id && !player.hasRolled && room.gameState === 'playing') {
+            const roll = Math.floor(Math.random() * 6) + 1;
             player.hasRolled = true;
             
-            player.boardPosition = (player.boardPosition + diceRoll) % boardCells.length;
-            
-            const currentCell = boardCells[player.boardPosition];
-            // Si la casilla es normal, elegimos una pregunta aleatoria de 'normal' o general
-            const categoryPool = questionsBank[currentCell.type] || questionsBank.normal;
-            const randomQ = categoryPool[Math.floor(Math.random() * categoryPool.length)];
-            
-            player.currentQuestion = randomQ;
-            player.currentCellType = currentCell.type;
+            io.to(currentRoomPin).emit('dice-rolled', { playerName: player.name, roll });
 
-            io.emit('dice-rolled', { playerName: player.name, roll: diceRoll, position: player.boardPosition });
-            io.emit('update-game', { gameState, players, currentPlayerIndex, boardCells });
-            
-            startTimer();
+            player.boardPosition = (player.boardPosition + roll) % room.boardCells.length;
+            const cell = room.boardCells[player.boardPosition];
+            player.currentCellType = cell.type;
+
+            const categoryQuestions = questions[cell.type] || questions.normal;
+            const randomQ = categoryQuestions[Math.floor(Math.random() * categoryQuestions.length)];
+            player.currentQuestion = randomQ;
+
+            updateRoomState(currentRoomPin);
+            startQuestionTimer(currentRoomPin);
         }
     });
 
+    // Enviar respuesta
     socket.on('submit-answer', (optionIndex) => {
-        const player = players[currentPlayerIndex];
-        if (player && player.id === socket.id && player.currentQuestion && gameState === 'playing') {
-            clearInterval(questionTimer);
-            const currentQ = player.currentQuestion;
+        if (!currentRoomPin || !rooms[currentRoomPin]) return;
+        const room = rooms[currentRoomPin];
+        const player = room.players[room.currentPlayerIndex];
 
-            if (optionIndex === currentQ.correct) {
-                player.score += 15;
-                socket.emit('correct-answer-feedback');
+        if (player && player.id === socket.id && player.currentQuestion) {
+            clearInterval(room.timer);
+            const correct = player.currentQuestion.correct;
 
-                // Si acierta en una casilla específica de casa, gana su estandarte
-                if (['gryffindor', 'slytherin', 'ravenclaw', 'hufflepuff'].includes(player.currentCellType)) {
+            if (optionIndex === correct) {
+                player.score += 10;
+                if (player.badges.hasOwnProperty(player.currentCellType)) {
                     player.badges[player.currentCellType] = true;
                 }
-
-                // Condición de victoria: tener los 4 estandartes
-                if (Object.values(player.badges).every(hasBadge => hasBadge)) {
-                    gameState = 'ended';
-                    io.emit('game-ended', player);
-                    return;
-                }
+                socket.emit('correct-answer-feedback');
             } else {
                 socket.emit('wrong-answer-feedback');
             }
 
-            player.currentQuestion = null;
-            player.hasRolled = false;
-            
-            nextTurn();
+            // Comprobar victoria (tener todos los estandartes)
+            if (player.badges.gryffindor && player.badges.slytherin && player.badges.ravenclaw && player.badges.hufflepuff) {
+                room.gameState = 'ended';
+                io.to(currentRoomPin).emit('game-ended', player);
+                updateRoomState(currentRoomPin);
+                return;
+            }
+
+            nextTurn(currentRoomPin);
         }
     });
 
+    // Desconexión
     socket.on('disconnect', () => {
-        players = players.filter(p => p.id !== socket.id);
-        if (players.length > 0) {
-            currentPlayerIndex = currentPlayerIndex % players.length;
-        } else {
-            gameState = 'waiting';
+        if (currentRoomPin && rooms[currentRoomPin]) {
+            const room = rooms[currentRoomPin];
+            room.players = room.players.filter(p => p.id !== socket.id);
+
+            if (room.players.length === 0) {
+                delete rooms[currentRoomPin];
+            } else {
+                if (room.currentPlayerIndex >= room.players.length) {
+                    room.currentPlayerIndex = 0;
+                }
+                updateRoomState(currentRoomPin);
+            }
         }
-        io.emit('update-game', { gameState, players, currentPlayerIndex, boardCells });
-        console.log(`Mago desconectado: ${socket.id}`);
     });
 });
 
-const PORT = process.env.PORT || 3000;
+function startQuestionTimer(pin) {
+    const room = rooms[pin];
+    if (!room) return;
+
+    room.timeLeft = 15;
+    if (room.timer) clearInterval(room.timer);
+
+    room.timer = setInterval(() => {
+        room.timeLeft--;
+        io.to(pin).emit('timer-update', room.timeLeft);
+
+        if (room.timeLeft <= 0) {
+            clearInterval(room.timer);
+            // Tiempo agotado, cuenta como fallo
+            nextTurn(pin);
+        }
+    }, 1000);
+}
+
+function nextTurn(pin) {
+    const room = rooms[pin];
+    if (!room) return;
+
+    const player = room.players[room.currentPlayerIndex];
+    if (player) {
+        player.hasRolled = false;
+        player.currentQuestion = null;
+        player.currentCellType = null;
+    }
+
+    room.currentPlayerIndex = (room.currentPlayerIndex + 1) % room.players.length;
+    updateRoomState(pin);
+}
+
+function updateRoomState(pin) {
+    const room = rooms[pin];
+    if (room) {
+        io.to(pin).emit('update-game', {
+            gameState: room.gameState,
+            players: room.players,
+            currentPlayerIndex: room.currentPlayerIndex,
+            boardCells: room.boardCells,
+            pin: room.pin
+        });
+    }
+}
+
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`Servidor de Trivial Mágico corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en puerto ${PORT}`);
 });
