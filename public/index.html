@@ -31,7 +31,7 @@
             border-radius: 12px;
             padding: 25px;
             width: 100%;
-            max-width: 850px;
+            max-width: 600px;
             box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
             text-align: center;
         }
@@ -94,15 +94,25 @@
             display: none !important;
         }
 
-        /* Tablero de 24 casillas en 6 columnas */
+      /* Tablero adaptable para móviles y ordenadores */
         .board-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 6px;
             margin: 15px 0;
-            max-height: 320px;
+            max-height: 70vh; /* Se adapta al alto de la pantalla del móvil en lugar de una altura fija */
             overflow-y: auto;
             padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Si la pantalla es muy estrecha (móviles en vertical), reducimos un poco el espacio o ajustamos si hace falta */
+        @media (max-width: 480px) {
+            .board-grid {
+                gap: 4px;
+                padding: 2px;
+            }
         }
 
         .cell {
